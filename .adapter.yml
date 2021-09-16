@@ -1,14 +1,13 @@
-name: "Youtube data"
-description: An  adapter that gets youtube data.
-node_identifier: youtube_cl_ea
+name: "YouTube Video Description Checker"
+description: An adapter that checks if the description of a YT video includes the provided text
+node_identifier: yt_oracle
 platforms:
   - Docker
   - AWS Lambda
   - GCP Functions
 data_sources:
-  - name: Youtube
-    url: https://youtube.com
+  - name: YouTube API v3
+    url: https://youtube.googleapis.com/youtube/v3
 parameters:
-  - endpoint
-  - part
-  - tag
+  - id
+  - hash
