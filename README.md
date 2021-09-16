@@ -1,41 +1,41 @@
 # Chainlink NodeJS Youtube External Adapter
 
+This adapter checks if the description of a particular YouTube video (using its video identifier) contains the
+provided text. This can be useful to check if a particular on-chain account has control over a YouTube video.
+
+For instance, the user is requested to add a hash of the video content to the YouTube description. The adapter allows
+building an oracle that verifies if the hash is actually present in the video description (using YouTube API through
+the adapter). The oracle brings on-chain if the hash is currently part of the video description.
+
+This feature is currently used by the CopyrightLY project to help support authorship claims with evidence, including
+that the claimer has previously published the video on YouTube.
+
 ## Input Params
 
-- `endpoint`: Default is "videos." Look at Youtube's API Reference. Other examples include "activities," "captions," and "search."
-- `id` or `tag`: The ID that YouTube uses to uniquely identify the video (if you're using a different `endpoint` than "videos" then you need to see the API documentation).
-- `part`: The object you want returned from the API response. eg. "statistics"
+- `id`: The ID that YouTube uses to uniquely identify the video.
+- `hash`: The text whose presence will be checked, it should be included in the description of the video 
+retrieved through YouTube's API.
+
+## Input example
+
+```json
+{ "id": 1, 
+  "data": { 
+    "id": "ZwVNLDIJKVA", 
+    "hash": "QmPP8X2rWc2uanbnKpxfzEAAuHPuThQRtxpoY8CYVJxDj8"
+  }
+}
+```
 
 ## Output example
 
 ```json
 {
-   "jobRunID":0,
+   "jobRunID": 0,
    "data":{
-      "kind":"youtube#videoListResponse",
-      "etag":"ngrRKllvPuwZPgSzsBvZNlCwAr0",
-      "items":[
-         {
-            "kind":"youtube#video",
-            "etag":"cJEcP6dQlWS2enZg0PHcrR6soQQ",
-            "id":"4i75Dqbhjvw",
-            "statistics":{
-               "viewCount":"820",
-               "likeCount":"51",
-               "dislikeCount":"0",
-               "favoriteCount":"0",
-               "commentCount":"0"
-            }
-         }
-      ],
-      "pageInfo":{
-         "totalResults":1,
-         "resultsPerPage":1
-      },
-      "result":null
+      "result": true
    },
-   "result":null,
-   "statusCode":200
+   "result": true
 }
 ```
 
@@ -66,7 +66,7 @@ yarn start
 ## Call the external adapter/API server
 
 ```bash
-curl -X POST -H "content-type:application/json" "http://localhost:8080/" --data '{ "id": 0, "data": { "part": "statistics", "tag": "4i75Dqbhjvw" } }'
+curl -X POST -H "content-type:application/json" "http://localhost:8080/" --data '{ "id": 0, "data": { "id": "ZwVNLDIJKVA", "hash": "QmPP8X2rWc2uanbnKpxfzEAAuHPuThQRtxpoY8CYVJxDj9" } }'
 ```
 
 ## Docker

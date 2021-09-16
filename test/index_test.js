@@ -4,34 +4,45 @@ const createRequest = require('../index.js').createRequest
 describe('createRequest', () => {
   const jobID = '1'
 
-  context('successful calls', () => {
+  context('complete calls', () => {
     const requests = [
-      { name: 'id not supplied', testData: { data: { part: 'statistics', tag: '4i75Dqbhjvw' } } },
-      { name: 'statistics/tag', testData: { id: jobID, data: { part: 'statistics', tag: '4i75Dqbhjvw' } } },
-      { name: 'statistics/id', testData: { id: jobID, data: { part: 'statistics', id: '4i75Dqbhjvw' } } }
+      {
+        name: 'valid',
+        valid: true,
+        statusCode: 200,
+        testData: { id: jobID, data: { id: 'ZwVNLDIJKVA', hash: 'QmPP8X2rWc2uanbnKpxfzEAAuHPuThQRtxpoY8CYVJxDj8' } }
+      },
+      {
+        name: 'wrong hash',
+        valid: false,
+        statusCode: 200,
+        testData: { id: jobID, data: { id: 'ZwVNLDIJKVA', hash: 'QmPP8X2rWc2uanbnKpxfzEAAuHPuThQRtxpoY8CYVJxDj9' } }
+      },
+      {
+        name: 'non-existing video',
+        valid: undefined,
+        statusCode: 500,
+        testData: { id: jobID, data: { id: 'ZwVNLDIJKVB', hash: 'QmPP8X2rWc2uanbnKpxfzEAAuHPuThQRtxpoY8CYVJxDj8' } }
+      }
     ]
 
     requests.forEach(req => {
       it(`${req.name}`, (done) => {
         createRequest(req.testData, (statusCode, data) => {
-          assert.equal(statusCode, 200)
-          assert.equal(data.jobRunID, jobID)
-          assert.isNotEmpty(data.data)
-          assert.isAbove(parseInt(data.data.items[0].statistics.viewCount), 0)
+          assert.equal(statusCode, req.statusCode)
+          assert.equal(data.result, req.valid)
           done()
         })
       })
     })
   })
 
-  context('error calls', () => {
+  context('uncomplete calls', () => {
     const requests = [
       { name: 'empty body', testData: {} },
       { name: 'empty data', testData: { data: {} } },
-      { name: 'part not supplied', testData: { id: jobID, data: { tag: '4i75Dqbhjvw' } } },
-      { name: 'tag not supplied', testData: { id: jobID, data: { part: 'statistics' } } },
-      { name: 'unknown part', testData: { id: jobID, data: { part: 'not_real', tag: '4i75Dqbhjvw' } } },
-      { name: 'unknown tag', testData: { id: jobID, data: { part: 'statistics', tag: 'not_real' } } }
+      { name: 'missing hash', testData: { id: jobID, data: { id: 'ZwVNLDIJKVA' } } },
+      { name: 'missing id', testData: { id: jobID, data: { hash: 'QmPP8X2rWc2uanbnKpxfzEAAuHPuThQRtxpoY8CYVJxDj8' } } }
     ]
 
     requests.forEach(req => {

@@ -1,12 +1,10 @@
-const { Requester, Validator } = require('@chainlink/external-adapter');
-require('dotenv').config();
-
+const { Requester, Validator } = require('@chainlink/external-adapter')
+require('dotenv').config()
 
 // Define custom error scenarios for the API.
 // Return true for the adapter to retry.
 const customError = (data) => {
-  if (data.Response === 'Error') return true
-  return false
+  return data.Response === 'Error'
 }
 
 // Define custom parameters to be used by the adapter.
@@ -14,21 +12,19 @@ const customError = (data) => {
 // with a Boolean value indicating whether or not they
 // should be required.
 const customParams = {
-  part: ['part'],
-  id: ['id', 'tag'],
-  endpoint: false
+  id: ['id'],
+  hash: ['hash']
 }
 
 const createRequest = (input, callback) => {
   // The Validator helps you validate the Chainlink request data
   const validator = new Validator(callback, input, customParams)
   const jobRunID = validator.validated.id
-  const endpoint = validator.validated.data.endpoint || 'videos'
-  const url = `https://youtube.googleapis.com/youtube/v3/${endpoint}`
-  const part = validator.validated.data.part
+  const url = 'https://youtube.googleapis.com/youtube/v3/videos'
+  const part = 'snippet'
+  const hash = validator.validated.data.hash
   const id = validator.validated.data.id
-  const key = process.env.API_KEY;
-
+  const key = process.env.API_KEY
 
   const params = {
     part,
@@ -39,7 +35,7 @@ const createRequest = (input, callback) => {
   // This is where you would add method and headers
   // you can add method like GET or POST and add it to the config
   // The default is GET requests
-  // method = 'get' 
+  // method = 'get'
   // headers = 'headers.....'
   const config = {
     url,
@@ -50,13 +46,22 @@ const createRequest = (input, callback) => {
   // or connection failure
   Requester.request(config, customError)
     .then(response => {
-      // It's common practice to store the desired value at the top-level
-      // result key. This allows different adapters to be compatible with
-      // one another.
-      callback(response.status, Requester.success(jobRunID, response));
+      let validVideoDescription = false
+      if (response.data.items && response.data.items.length > 0) {
+        const description = Requester.getResult(response.data, ['items', '0', 'snippet', 'description'])
+        validVideoDescription = description.indexOf(hash) >= 0
+        // It's common practice to store the desired value at the top-level
+        // result key. This allows different adapters to be compatible with
+        // one another.
+        response.result = validVideoDescription
+        callback(response.status, Requester.success(jobRunID,
+          { jobRunID: jobRunID, data: { result: validVideoDescription } }))
+      } else {
+        callback(500, Requester.errored(jobRunID, 'Video ' + id + ' not found'))
+      }
     })
     .catch(error => {
-      console.log(error);
+      console.log(error)
       callback(500, Requester.errored(jobRunID, error))
     })
 }
