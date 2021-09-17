@@ -152,3 +152,30 @@ If using a REST API Gateway, you will need to disable the Lambda proxy integrati
 - Click More, Add variable (repeat for all environment variables)
   - NAME: API_KEY
   - VALUE: Your_API_key
+
+## Job Definition
+
+```json
+{
+  "name": "yt-oracle",
+  "initiators": [
+    {
+      "type": "runlog",
+      "params": {
+        "address": "0x81946354ba92c4ef22506e9de975df674dec8a92"
+      }
+    }
+  ],
+  "tasks": [
+    {
+      "type": "yt_oracle"
+    },
+    {
+      "type": "ethbool"
+    },
+    {
+      "type": "ethtx"
+    }
+  ]
+}
+```
